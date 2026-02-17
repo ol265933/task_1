@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System - Design Patterns Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 30px; 
+            text-align: center;
+        }
+        header h1 { font-size: 2em; margin-bottom: 10px; }
+        header p { opacity: 0.9; }
+        .content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+        .panel { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .panel h2 { 
+            color: #667eea; 
+            margin-bottom: 15px; 
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #495057; }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .task-list { margin-top: 15px; }
+        .task-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .task-item:hover { transform: translateX(5px); }
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .task-title { font-weight: 600; font-size: 1.1em; color: #212529; }
+        .task-type { 
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .type-regular { background: #e3f2fd; color: #1976d2; }
+        .type-urgent { background: #ffebee; color: #c62828; }
+        .type-recurring { background: #e8f5e9; color: #2e7d32; }
+        .task-state { 
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #fff3cd;
+            color: #856404;
+        }
+        .task-actions { margin-top: 10px; }
+        .notifications { 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 6px; 
+            max-height: 200px; 
+            overflow-y: auto;
+            font-size: 13px;
+            border: 2px solid #e9ecef;
+        }
+        .notification-item { 
+            padding: 8px; 
+            margin-bottom: 5px; 
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+        }
+        .toolbar { 
+            padding: 15px 20px; 
+            background: #f8f9fa; 
+            border-top: 2px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .badge { 
+            display: inline-block;
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .filter-sort-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .filter-sort-bar select, .filter-sort-bar input {
+            width: auto;
+            min-width: 200px;
+        }
+        .date-filter-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .date-filter-group input {
+            width: 150px;
+            min-width: 150px;
+        }
+        .stats-bar {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Task Management System</h1>
+            <p>Design Patterns Demo: Factory • State • Observer • Command • Singleton • Strategy</p>
+        </header>
+
+        <div class="content">
+            <!-- Левая панель: Создание задачи -->
+            <div class="panel">
+                <h2>📝 Create Task (Factory Pattern)</h2>
+                <form method="post" action="/create">
+                    <div class="form-group">
+                        <label>Task Type:</label>
+                        <select name="taskType">
+                            <option value="0">Regular Task</option>
+                            <option value="1">Urgent Task (due in 1 day)</option>
+                            <option value="2">Recurring Task (every 7 days)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" required placeholder="Enter task title...">
+                    </div>
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" placeholder="Enter task description..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </form>
+
+                <hr style="margin: 20px 0; border: none; border-top: 2px solid #dee2e6;">
+
+                <h2 style="margin-top: 20px;">🔔 Notifications (Observer Pattern)</h2>
+                <div class="notifications">
+                    @if (ViewBag.Notifications.Count == 0)
+                    {
+                        <div class="empty-state">No notifications yet</div>
+                    }
+                    else
+                    {
+                        foreach (var notification in ViewBag.Notifications)
+                        {
+                            <div class="notification-item">@notification</div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Правая панель: Список задач -->
+            <div class="panel">
+                <h2>📋 Tasks (State & Strategy Patterns)</h2>
+                
+                <div class="stats-bar">
+                    <span>📊 Total Tasks: <strong>@ViewBag.AllTasksCount</strong></span>
+                    <span>📄 Showing: <strong>@ViewBag.Tasks.Count</strong></span>
+                    <form method="post" action="/reset-filters" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-secondary">Reset All Filters</button>
+                    </form>
+                </div>
+
+                <div class="filter-sort-bar">
+                    <form method="post" action="/filter">
+                        <select name="filterType" onchange="this.form.submit()">
+                            <option value="0" @(ViewBag.CurrentFilterId == 0 ? "selected" : "")>Filter: All Tasks</option>
+                            <option value="1" @(ViewBag.CurrentFilterId == 1 ? "selected" : "")>Filter: Urgent Only</option>
+                            <option value="2" @(ViewBag.CurrentFilterId == 2 ? "selected" : "")>Filter: Active Only</option>
+                            <option value="3" @(ViewBag.CurrentFilterId == 3 ? "selected" : "")>Filter: Completed Only</option>
+                            <option value="4" @(ViewBag.CurrentFilterId == 4 ? "selected" : "")>Filter: Recurring Only</option>
+                        </select>
+                    </form>
+                    
+                    <form method="post" action="/sort">
+                        <select name="sortType" onchange="this.form.submit()">
+                            <option value="0" @(ViewBag.CurrentSortId == 0 ? "selected" : "")>Sort: Newest First</option>
+                            <option value="1" @(ViewBag.CurrentSortId == 1 ? "selected" : "")>Sort: Oldest First</option>
+                            <option value="2" @(ViewBag.CurrentSortId == 2 ? "selected" : "")>Sort: By Type</option>
+                            <option value="3" @(ViewBag.CurrentSortId == 3 ? "selected" : "")>Sort: By State</option>
+                            <option value="4" @(ViewBag.CurrentSortId == 4 ? "selected" : "")>Sort: By Title (A-Z)</option>
+                            <option value="5" @(ViewBag.CurrentSortId == 5 ? "selected" : "")>Sort: Type + State</option>
+                            <option value="6" @(ViewBag.CurrentSortId == 6 ? "selected" : "")>Sort: State + Type</option>
+                            <option value="7" @(ViewBag.CurrentSortId == 7 ? "selected" : "")>Sort: Type + Date</option>
+                            <option value="8" @(ViewBag.CurrentSortId == 8 ? "selected" : "")">Sort: State + Date</option>
+                        </select>
+                    </form>
+                </div>
+
+                <div class="filter-sort-bar">
+                    <form method="post" action="/filter-date" class="date-filter-group">
+                        <label style="margin: 0;">Date Range:</label>
+                        <input type="date" name="startDate" value="@DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd")">
+                        <span>to</span>
+                        <input type="date" name="endDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                    </form>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <span class="badge">📌 @ViewBag.CurrentFilterName</span>
+                    <span class="badge">🔄 @ViewBag.CurrentSortName</span>
+                </div>
+
+                <div class="task-list">
+                    @if (ViewBag.Tasks.Count == 0)
+                    {
+                        <div class="empty-state">
+                            <p>No tasks found with current filters.</p>
+                            <p>Total tasks in database: @ViewBag.AllTasksCount</p>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var task in ViewBag.Tasks)
+                        {
+                            var typeClass = task.Type.ToString().ToLower();
+                            var stateName = task.StateName.Replace("State", "");
+                            
+                            <div class="task-item">
+                                <div class="task-header">
+                                    <div>
+                                        <span class="task-type type-@typeClass">@task.Type</span>
+                                        <span class="task-state">@stateName</span>
+                                    </div>
+                                    <span style="color: #6c757d; font-size: 12px;">ID: @task.Id</span>
+                                </div>
+                                <div class="task-title">@task.Title</div>
+                                @if (!string.IsNullOrEmpty(task.Description))
+                                {
+                                    <div style="color: #6c757d; font-size: 13px; margin-top: 5px;">@task.Description</div>
+                                }
+                                <div style="color: #6c757d; font-size: 12px; margin-top: 5px;">
+                                    Created: @task.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                </div>
+                                <div class="task-actions">
+                                    <form method="post" action="/change-state" style="display: inline;">
+                                        <input type="hidden" name="id" value="@task.Id">
+                                        <input type="hidden" name="forward" value="true">
+                                        <button type="submit" class="btn btn-sm btn-success">Next State →</button>
+                                    </form>
+                                    <form method="post" action="/change-state" style="display: inline;">
+                                        <input type="hidden" name="id" value="@task.Id">
+                                        <input type="hidden" name="forward" value="false">
+                                        <button type="submit" class="btn btn-sm btn-warning">← Prev State</button>
+                                    </form>
+                                    <form method="post" action="/delete" style="display: inline;" onsubmit="return confirm('Delete this task?')">
+                                        <input type="hidden" name="id" value="@task.Id">
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <form method="post" action="/undo" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" @(ViewBag.CanUndo ? "" : "disabled")>
+                    ↶ Undo (Command Pattern)
+                </button>
+            </form>
+            <form method="post" action="/redo" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" @(ViewBag.CanRedo ? "" : "disabled")>
+                    ↷ Redo (Command Pattern)
+                </button>
+            </form>
+            <form method="post" action="/backup" style="display: inline;">
+                <button type="submit" class="btn btn-primary">💾 Backup DB (Singleton)</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
